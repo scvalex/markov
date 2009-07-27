@@ -1,11 +1,18 @@
+import Data.List ( foldl' )
 import qualified Data.Map as M
 import System.Environment ( getArgs )
+import System.Random
 
 type Appearances = M.Map String Int
 type FollowingWords = M.Map String Appearances
+data Choices = Choices 
+    { getList :: [(Int, String)]
+    , getListLength :: Int 
+    } deriving ( Show )
+type ChoiceMap = M.Map String Choices
 
 tr :: [(Char, String)] -> String -> String
-tr m s = concatMap trChar s
+tr m = concatMap trChar
     where
       d = M.fromList m
       trChar c = case c `M.lookup` d of
@@ -22,7 +29,7 @@ preprocess :: String -> String
 preprocess = addSpacesAround ",.!?:[]#*_;\"'-()/\\"
 
 buildFollowingWordMap :: [String] -> FollowingWords
-buildFollowingWordMap ws = go M.empty ws
+buildFollowingWordMap = go M.empty
     where
       go :: FollowingWords -> [String] -> FollowingWords
       go m (w:w2:ws) = go m' (w2:ws)
@@ -34,11 +41,28 @@ buildFollowingWordMap ws = go M.empty ws
             updateAdder (Just n) = Just $ n+1
       go m _ = m
 
+buildChoiceMap :: FollowingWords -> ChoiceMap
+buildChoiceMap = M.map appearancesToChoices
+    where
+      appearancesToChoices :: Appearances -> Choices
+      appearancesToChoices apps = Choices as' (fst . last $ as')
+          where
+            as = map (\(a, b) -> (b, a)) $ M.assocs apps
+            as' = reverse . fst $ foldl' (\(l, rt) (i, s) -> ((i+rt, s):l, rt+i)) ([], 0) as
+
+rollNSidedDice :: Int -> IO Int
+rollNSidedDice n = getStdRandom (randomR (1, n))
+
+getRandomWeightedChoice :: Choices -> IO String
+getRandomWeightedChoice c = do
+  n <- rollNSidedDice (getListLength c)
+  return . snd . head $ filter (\(i, s) -> i>=n) (getList c)
+
 main :: IO ()
 main = do
   (fn:_) <- getArgs
   txt <- readFile fn
-  let txt' = preprocess txt
-  let wl = words txt'
-  let fwm = buildFollowingWordMap wl
-  print $ M.lookup "." fwm
+  let wl = words . preprocess $ txt
+  let cm = buildChoiceMap . buildFollowingWordMap $ wl
+  let (Just vah) = M.lookup "the" cm
+  getRandomWeightedChoice vah >>= print
