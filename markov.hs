@@ -1,6 +1,7 @@
 import Data.List ( foldl' )
 import qualified Data.Map as M
 import System.Environment ( getArgs )
+import Data.Maybe ( fromJust )
 import System.Random
 
 type Appearances = M.Map String Int
@@ -51,12 +52,23 @@ buildChoiceMap = M.map appearancesToChoices
             as' = reverse . fst $ foldl' (\(l, rt) (i, s) -> ((i+rt, s):l, rt+i)) ([], 0) as
 
 rollNSidedDice :: Int -> IO Int
-rollNSidedDice n = getStdRandom (randomR (1, n))
+rollNSidedDice n = randomRIO (1, n)
 
 getRandomWeightedChoice :: Choices -> IO String
 getRandomWeightedChoice c = do
   n <- rollNSidedDice (getListLength c)
-  return . snd . head $ filter (\(i, s) -> i>=n) (getList c)
+  return . snd . head $ filter (\(i, _) -> i>=n) (getList c)
+
+nextWord :: ChoiceMap -> String -> IO String
+nextWord cm s = getRandomWeightedChoice (maybe (fromJust $ "." `M.lookup` cm) id (s `M.lookup` cm))
+
+generateNWords :: ChoiceMap -> Int -> IO [String]
+generateNWords cm = go [] "."
+    where
+      go acc _  0 = return $ reverse acc
+      go acc cw n = do
+        w <- nextWord cm cw
+        go (w:acc) w (n-1)
 
 main :: IO ()
 main = do
@@ -64,5 +76,4 @@ main = do
   txt <- readFile fn
   let wl = words . preprocess $ txt
   let cm = buildChoiceMap . buildFollowingWordMap $ wl
-  let (Just vah) = M.lookup "the" cm
-  getRandomWeightedChoice vah >>= print
+  generateNWords cm 40 >>= print
