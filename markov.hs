@@ -1,4 +1,4 @@
-import Data.List ( foldl' )
+import Data.List ( intersperse, foldl' )
 import qualified Data.Map as M
 import System.Environment ( getArgs )
 import Data.Maybe ( fromJust )
@@ -27,7 +27,8 @@ addSpacesAround ds = tr rs
       rs = zip ds ds'
 
 preprocess :: String -> String
-preprocess = addSpacesAround ",.!?:[]#*_;\"'-()/\\"
+preprocess = addSpacesAround ",.!?:[]#*_;\"-()/\\"
+             . filter (\c -> not $ c `elem` "[]#*_\\/-()")
 
 buildFollowingWordMap :: [String] -> FollowingWords
 buildFollowingWordMap = go M.empty
@@ -76,4 +77,4 @@ main = do
   txt <- readFile fn
   let wl = words . preprocess $ txt
   let cm = buildChoiceMap . buildFollowingWordMap $ wl
-  generateNWords cm 40 >>= print
+  generateNWords cm 40 >>= (return . concat . intersperse " ") >>= print
