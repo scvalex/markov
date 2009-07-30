@@ -40,27 +40,21 @@ void getwords() {
 	}
 }
 
-/* print num words starting with the i-th one */
-void printword(int i, int num) {
-	char *c;
-	int newword = 1;
-	for (c = words[i]; *c && num; ++c) {
-		putchar(*c);
-		if (isalnum(*c)) {
-			newword = 0;
-		} else {
-			if (!newword)
-				--num;
-			newword = 1;
-		}
+/* print num words */
+void printword(char *c, int num) {
+	for (; *c && num; --num) {
+		for (; *c && isalnum(*c); ++c)
+			putchar(*c);
+		for (; *c && !isalnum(*c); ++c)
+			putchar(*c);
 	}
-	printf("\n");
 }
 
 /* print all words between l and u */
 void printwords(int l, int u, int num) {
 	for (; l <= u; ++l)
-		printword(l, num);
+		printword(words[l], num);
+	printf("\n");
 }
 
 /* compare words */
@@ -79,36 +73,88 @@ int wordscmp(char *c, char *d, int num) {
 	return 0;
 }
 
+int ORDER;
 int pstrcmp(const void *a, const void *b) {
-	return wordscmp(*(char**)a, *(char**)b, 1);
+	return wordscmp(*(char**)a, *(char**)b, ORDER);
 }
 
 /* sort words alphabetically */
-void sortwords() {
+void sortwords(int num) {
+	ORDER = num;
 	qsort(words, N, sizeof(words[0]), pstrcmp);
 }
 
-int bs(char *w, int num) {
+int bsl(char *w, int num) {
 	int i, l = 0;
 	for (i = 1; i < N; i <<= 1)
 		;
-	for (; i > 0; i >>= 1)
-		if ((l+i < N) && (wordscmp(w, words[l+i], num) > 0 ))
+	for (; i > 0; i >>= 1) {
+		if ((l+i < N) && (wordscmp(w, words[l+i], num) > 0))
 			l += i;
+	}
+	++l;
 	if (wordscmp(w, words[l], num) == 0)
 		return l;
 	return -1;
+}
+
+int bsu(char *w, int num) {
+	int i, l = 0;
+	for (i = 1; i < N; i <<= 1)
+		;
+	for (; i > 0; i >>= 1) {
+		if ((l+i < N) && (wordscmp(w, words[l+i], num) >= 0))
+			l += i;
+	}
+	if (wordscmp(w, words[l], num) == 0)
+		return l;
+	return -1;
+}
+
+/* generate n words starting with c */
+void generatetext(char *c, int num, int n) {
+	printword(c, num);
+//	printf("\n");
+	int l, u, wsf;
+	char *s;
+	srand(23);
+	while (n--) {
+//		printf("Current: ");
+//		printword(c, num);
+		l = bsl(c, num);
+		u = bsu(c, num);
+//		printf("\n(l, u) = (%d, %d)\n", l, u);
+		s = words[l + (rand() % (u-l+1))];
+//		printf("Selected: ");
+//		printword(s, num+1);
+//		printf("\n");
+		
+		/* skip over the first word, set the second as c and
+		 * print the third (num-th actually) */
+		for (wsf = 0; *s && (wsf <= num); ++s) {
+			while (!isalnum(*s))
+				++s;
+			if (wsf == 1)
+				c = s;
+			if (wsf == num)
+				printword(s, 1);
+			while (isalnum(*s))
+				++s;
+			++wsf;
+		}
+//		printf("\n");
+	}
+	printf("\n");
 }
 
 int main(int argc, char *argv[]) {
 	readtext(argv[1]);
 	preprocess();
 	getwords();
-	sortwords();
+	sortwords(2);
 
-	printwords(100, 110, 2);
-
-	printf("%d\n", bs("A man", 1));
+	printwords(100, 120, 2);
+	generatetext("A maxim", 2, 40);
 
 	return 0;
 }
