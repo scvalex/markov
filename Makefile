@@ -1,3 +1,7 @@
+.PHONY: runcmakrov2
+runcmarkov2: cmarkov2
+	./cmarkov2 < morals.txt
+
 .PHONY: runcmakrov
 runcmarkov: cmarkov
 	./cmarkov morals.txt
@@ -15,3 +19,6 @@ markov: markov.hs
 
 cmarkov: cmarkov.c
 	gcc -Wall -O2 cmarkov.c -o cmarkov
+
+cmarkov2: cmarkov2.c
+	gcc -W -Wall -ggdb3 cmarkov2.c -o cmarkov2

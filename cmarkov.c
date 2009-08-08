@@ -128,7 +128,7 @@ void generatetext(char *c, int num, int n) {
 //		printf("Selected: ");
 //		printword(s, num+1);
 //		printf("\n");
-		
+
 		/* skip over the first word, set the second as c and
 		 * print the third (num-th actually) */
 		for (wsf = 0; *s && (wsf <= num); ++s) {
