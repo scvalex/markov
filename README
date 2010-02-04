@@ -8,7 +8,7 @@ To run
 
 There are 3 versions.  For sample usage, try the following:
 
-  make runmarkov
-  make runcmarkov
-  make runcmarkov2
+$ make runmarkov
+$ make runcmarkov
+$ make runcmarkov2
 
