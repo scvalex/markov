@@ -17,7 +17,7 @@ int wordsncmp(char *p, char *q) {
             }
         }
     }
-    return (*p-*q);
+    return (*p - *q);
 }
 
 int sortcmp(const void *a, const void *b) {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         assert(words[nwords] < text + text_size - 20);
 
         /* Note that we're leaving a 0 after each word. */
-        words[nwords+1] = words[nwords] + strlen(words[nwords]) + 1;
+        words[nwords + 1] = words[nwords] + strlen(words[nwords]) + 1;
         ++nwords;
     }
 
