@@ -46,25 +46,25 @@ int main(int argc, char *argv[]) {
     assert(words);
 
     /* Read text and split it into space delimited words. */
-    int nword = 0;
+    int nwords = 0;
     words[0] = text;
-    while (scanf("%s", words[nword]) != EOF) {
-        assert(nword < words_count - ngram_n);
-        assert(words[nword] < text + text_size - 20);
+    while (scanf("%s", words[nwords]) != EOF) {
+        assert(nwords < words_count - ngram_n);
+        assert(words[nwords] < text + text_size - 20);
 
         /* Note that we're leaving a 0 after each word. */
-        words[nword+1] = words[nword] + strlen(words[nword]) + 1;
-        ++nword;
+        words[nwords+1] = words[nwords] + strlen(words[nwords]) + 1;
+        ++nwords;
     }
 
     /* Pre-process words. */
-    qsort(words, nword, sizeof(words[0]), sortcmp);
+    qsort(words, nwords, sizeof(words[0]), sortcmp);
 
     /* Print priming words. */
     /* Find a fullstop. */
     int aux = -1;
     while (aux == -1) {
-        aux = rand() % nword;
+        aux = rand() % nwords;
         while (words[aux] && words[aux][strlen(words[aux]) - 1] != '.') {
             ++aux;
         }
@@ -76,21 +76,20 @@ int main(int argc, char *argv[]) {
 
     char *phrase = words[aux];
     for (int wordsleft = 300; wordsleft > 0; --wordsleft) {
-        /* Binary search for last printed word. */
-        int l, u, m;
-        l = -1;
-        u = nword;
-        while (l+1 != u) {
-            m = (l+u)/2;
-            if (wordsncmp(words[m], phrase) < 0)
-                l = m;
-            else
-                u = m;
+        /* Binary search for the last selected phrase. */
+        int i = 1;
+        for (; (i<<1) < nwords && wordsncmp(words[i<<1], phrase) < 0; i = i<<1)
+            ;
+        int lower = 0;
+        for (; i > 0; i = i>>1) {
+            if (lower + i < nwords && wordsncmp(words[lower + i], phrase) < 0)
+                lower += i;
         }
+        lower++;
 
         /* Find all word sequences that start with `phrase`. */
-        int start = u;
-        int end = u + 1;
+        int start = lower;
+        int end = lower + 1;
         for (; wordsncmp(phrase, words[end]) == 0; ++end)
             ;
         --end;
@@ -98,6 +97,9 @@ int main(int argc, char *argv[]) {
         /* Select one of the sequences at random. */
         char *next_phrase = words[start + rand() % (end - start + 1)];
 
+        /* Advance "phrase" past its first word and don't print the
+         * first `ngram_n` words since they've already been
+         * printed.' */
         phrase = skip_words(next_phrase, 1);
         if (strlen(skip_words(phrase, ngram_n - 1)) == 0)
             continue;
