@@ -57,10 +57,12 @@ int main(int argc, char *argv[]) {
         ++nwords;
     }
 
+    auto words_comp = [](const char *a, const char *b) {
+        return (wordsncmp(a, b) < 0);
+    };
+
     /* Pre-process words. */
-    sort(words, words + nwords, [](const char *a, const char *b) {
-            return (wordsncmp(a, b) < 0);
-        });
+    sort(words, words + nwords, words_comp);
 
     /* Print priming words. */
     /* Find a fullstop. */
@@ -78,23 +80,9 @@ int main(int argc, char *argv[]) {
 
     char *phrase = words[aux];
     for (int wordsleft = 300; wordsleft > 0; --wordsleft) {
-        /* Binary search for the last selected phrase. */
-        int i = 1;
-        for (; (i<<1) < nwords && wordsncmp(words[i<<1], phrase) < 0; i = i<<1)
-            ;
-        int lower = 0;
-        for (; i > 0; i = i>>1) {
-            if (lower + i < nwords && wordsncmp(words[lower + i], phrase) < 0)
-                lower += i;
-        }
-        lower++;
-
-        /* Find all word sequences that start with `phrase`. */
-        int start = lower;
-        int end = lower + 1;
-        for (; wordsncmp(phrase, words[end]) == 0; ++end)
-            ;
-        --end;
+        /* Binary search for the selected phrase. */
+        int start = lower_bound(words, words + nwords, phrase, words_comp) - words;
+        int end = upper_bound(words, words + nwords, phrase, words_comp) - words;
 
         /* Select one of the sequences at random. */
         char *next_phrase = words[start + rand() % (end - start + 1)];
