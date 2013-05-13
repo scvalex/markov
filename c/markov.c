@@ -77,6 +77,9 @@ int main(int argc, char *argv[]) {
     char *phrase = words[aux];
     for (int wordsleft = 300; wordsleft > 0; --wordsleft) {
         /* Binary search for the last selected phrase. */
+        /* Note that we cannot use `bsearch` because it does not
+         * specify which of the elements in the equivalence class it
+         * finds. */
         int i = 1;
         for (; (i<<1) < nwords && wordsncmp(words[i<<1], phrase) < 0; i = i<<1)
             ;
