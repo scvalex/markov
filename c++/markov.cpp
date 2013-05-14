@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
     int aux = -1;
     while (aux == -1) {
         aux = rand() % nwords;
+        // FIXME Fix the stupid.
         while (words[aux] && words[aux][strlen(words[aux]) - 1] != '.') {
             ++aux;
         }

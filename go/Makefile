@@ -3,7 +3,7 @@ all: build
 .PHONY: all build clean
 
 build:
-	go build
+	go build -o markov
 
 clean:
 	go clean
