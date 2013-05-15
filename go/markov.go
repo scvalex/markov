@@ -58,9 +58,22 @@ func main() {
 		}
 		done = aux < t.Len() && strings.HasSuffix(t.Word(aux), ".")
 	}
-
+    // words[aux] is now something ending in a fullstop, so don't
+    // print the first word.
 	for i := 1; i < ngram_n && t.words[aux] + i < t.Len(); i++ {
 		fmt.Printf("%s ", t.text[t.words[aux] + i])
 	}
 	fmt.Println()
+
+	for i := 0; i < 3; i++ {
+		// Binary search for the selected phrase.
+		start := sort.Search(t.Len(), func (i int) bool {
+			return t.Less(t.words[i], t.words[aux])
+		})
+		end := sort.Search(t.Len(), func (i int) bool {
+			return t.Less(t.words[aux], t.words[i])
+		})
+		fmt.Println(start)
+		fmt.Println(end)
+	}
 }
