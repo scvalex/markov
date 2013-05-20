@@ -31,6 +31,23 @@ func (t text) Swap(i, j int) {
 	t.words[i], t.words[j] = t.words[j], t.words[i]
 }
 
+func (t text) wordscmp(i, j int) int {
+	var k int
+	for k := 0; k < ngram_n && i + k < t.Len() && j + k < t.Len() && t.text[i + k] == t.text[j + k]; k++ {
+	}
+	if i + k == t.Len() && j + k < t.Len() {
+		return -1
+	} else if j + k == t.Len() {
+		return 1
+	} else if t.text[i + k] < t.text[j + k] {
+		return -1
+	} else if t.text[i + k] > t.text[j + k] {
+		return 1
+	} else {
+		return 0
+	}
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
@@ -68,12 +85,16 @@ func main() {
 	for i := 0; i < 3; i++ {
 		// Binary search for the selected phrase.
 		start := sort.Search(t.Len(), func (i int) bool {
-			return t.Less(t.words[i], t.words[aux])
+			return (t.wordscmp(t.words[i], t.words[aux]) == 0)
 		})
 		end := sort.Search(t.Len(), func (i int) bool {
-			return t.Less(t.words[aux], t.words[i])
+			return t.wordscmp(t.words[aux], t.words[i]) < 0
 		})
-		fmt.Println(start)
-		fmt.Println(end)
+		fmt.Printf("aux; %d: '%s'\n", aux, t.Word(aux))
+		fmt.Printf("%d..%d\n", start, end)
+		if start < t.Len() && end < t.Len() {
+			fmt.Printf("%d: '%s'\n", start, t.Word(start))
+			fmt.Printf("%d: '%s'\n", end, t.Word(end))
+		}
 	}
 }
